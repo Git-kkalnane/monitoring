@@ -1,0 +1,46 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - type: bind
+        source: ./prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+      - type: volume
+        source: prometheus-data
+        target: /prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    user: root
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: ./grafana-volume
+        target: /var/lib/grafana
+      - type: bind
+        source: ./grafana/provisioning/
+        target: /etc/grafana/provisioning/
+    networks:
+      - monitoring-net
+    user: root
+
+volumes:
+  prometheus-data:
+
+networks:
+  monitoring-net:
+    driver: bridge
